@@ -1,9 +1,13 @@
-import DFiant._ //Required in any DFiant compilation program
+import DFiant.*
 
-trait ID extends DFDesign { //This our `ID` dataflow design
-  val x = DFSInt[16] <> IN  //The input port is a signed 16-bit integer
-  val y = DFSInt[16] <> OUT //The output port is a signed 16-bit integer
-  y := x //Trivial direct input-to-output assignment
-}
+class ID(using DFC) extends RTDesign:
+  val x = DFUInt(8) <> IN 
+  val y = DFUInt(8) <> OUT
+  y := x.reg
 
-object IDApp extends DFApp.VHDLCompiler[ID](DFApp.Config.Print) //The ID compilation program entry-point
+@main def hello: Unit = 
+  import DFiant.compiler.stages.printCodeString
+  println("Hello, welcome to the DFiant demo!")
+  println("Printing the top:")
+  val top = new ID
+  top.printCodeString

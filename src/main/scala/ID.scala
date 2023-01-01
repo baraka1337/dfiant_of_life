@@ -1,13 +1,12 @@
-import DFiant.*
+import dfhdl.*
 
-class ID(using DFC) extends RTDesign:
-  val x = DFUInt(8) <> IN 
-  val y = DFUInt(8) <> OUT
-  y := x.reg
+class ID extends DFDesign:
+  val x = UInt(8) <> IN init 0
+  val y = UInt(8) <> OUT
+  y := x.prev + 1
 
 @main def hello: Unit = 
-  import DFiant.compiler.stages.printCodeString
-  println("Hello, welcome to the DFiant demo!")
+  println("Hello, welcome to the DFHDL demo!")
   println("Printing the top:")
   val top = new ID
   top.printCodeString

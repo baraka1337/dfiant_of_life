@@ -1,11 +1,11 @@
-val scala3Version = "3.1.2-RC1"
-val dfiantVersion = "0.2.0-SNAPSHOT"
+val scala3Version = "3.2.2-RC1"
+val dfhdlVersion = "0.2.0-SNAPSHOT"
 
 lazy val root = project
   .in(file("."))
   .settings(
-    name := "dfiantdemo",
-    version := "0.1.0-SNAPSHOT",
+    name := "dfhdl_template",
+    version := "0.1.0",
     scalacOptions ++= Seq(
       "-deprecation",
       "-encoding", "UTF-8",
@@ -14,6 +14,6 @@ lazy val root = project
       "-language:implicitConversions",
     ),
     scalaVersion := scala3Version,
-    addCompilerPlugin("io.github.dfianthdl" % "dfiant-plugin" % dfiantVersion cross CrossVersion.full),
-    libraryDependencies += "io.github.dfianthdl" % "dfiant_3" % dfiantVersion
+    addCompilerPlugin("io.github.dfianthdl" % "dfhdl-plugin" % dfhdlVersion cross CrossVersion.full),
+    libraryDependencies += "io.github.dfianthdl" % "dfhdl_3" % dfhdlVersion
   )

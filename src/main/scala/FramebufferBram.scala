@@ -48,13 +48,12 @@ class FramebufferBram(
   val x_add     = SInt(CORDW) <> VAR
   val tempWidth = SInt(fb_addr_line.width) const WIDTH
 
-  process(clk_sys) {
-    if (clk_sys.rising)
-      fb_addr_line := (y * tempWidth).bits.resize(fb_addr_line.width).uint
-      x_add        := x
-      fb_addr_write := (x_add + fb_addr_line.signed).bits
-        .resize(fb_addr_write.width)
-        .uint
+  process(clk_sys.rising) {
+    fb_addr_line :== (y * tempWidth).bits.resize(fb_addr_line.width).uint
+    x_add :== x
+    fb_addr_write :== (x_add + fb_addr_line.signed).bits
+      .resize(fb_addr_write.width)
+      .uint
   }
 
   val we_in_p1 = Boolean <> VAR
@@ -62,16 +61,15 @@ class FramebufferBram(
   // val fb_we, we_in_p1 = Boolean <> VAR
   val fb_cidx_write, cidx_in_p1 = UInt(FB_DATAW) <> VAR
 
-  process(clk_sys) {
-    if (clk_sys.rising)
-      we_in_p1 :== we
-      cidx_in_p1 :== cidx
-      clip :== x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT
-      if (busy || clip)
-        fb_we :== 0
-      else
-        fb_we := we_in_p1
-      fb_cidx_write :== cidx_in_p1
+  process(clk_sys.rising) {
+    we_in_p1 :== we
+    cidx_in_p1 :== cidx
+    clip :== x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT
+    if (busy || clip)
+      fb_we :== 0
+    else
+      fb_we :== we_in_p1
+    fb_cidx_write :== cidx_in_p1
   }
 
   val bram_inst = new BramSdp(
@@ -104,49 +102,44 @@ class FramebufferBram(
   val LAT         = 3
   val lb_en_in_sr = Bits(LAT) <> VAR
 
-  process(clk_sys) {
-    if (clk_sys.rising)
-      if (rst_sys)
-        lb_en_in_sr := all(0)
-      else
-        lb_en_in_sr := (lb_en_in, lb_en_in_sr(LAT - 1, 1))
+  process(clk_sys.rising) {
+    if (rst_sys)
+      lb_en_in_sr :== all(0)
+    else
+      lb_en_in_sr :== (lb_en_in, lb_en_in_sr(LAT - 1, 1))
   }
 
-  process(clk_sys) {
-    if (clk_sys.rising)
-      if (fb_addr_read < FB_PIXELS - 1)
-        if (lb_data_req)
-          cnt_h := 0
-          if (FB_DUALPORT != 0)
-            busy := 1
-        else
-          cnt_h        := cnt_h + 1
-          fb_addr_read := fb_addr_read + 1
+  process(clk_sys.rising) {
+    if (fb_addr_read < FB_PIXELS - 1)
+      if (lb_data_req)
+        cnt_h :== 0
+        if (FB_DUALPORT != 0)
+          busy :== 1
       else
-        cnt_h := LB_LEN
+        cnt_h :== cnt_h + 1
+        fb_addr_read :== fb_addr_read + 1
+    else
+      cnt_h :== LB_LEN
 
-      if (frame_sys.bool)
-        fb_addr_read := 0
-        busy         := 0
-      if (rst_sys)
-        fb_addr_read := 0
-        busy         := 0
-        cnt_h        := LB_LEN
-      if (lb_en_in_sr == b"100")
-        busy := 0
+    if (frame_sys.bool)
+      fb_addr_read :== 0
+      busy :== 0
+    if (rst_sys)
+      fb_addr_read :== 0
+      busy :== 0
+      cnt_h :== LB_LEN
+    if (lb_en_in_sr == b"100")
+      busy :== 0
   }
 
   val lb_in_0 = Bits(LB_BPC) <> VAR
   val lb_in_1 = Bits(LB_BPC) <> VAR
   val lb_in_2 = Bits(LB_BPC) <> VAR
-  // val lb_out_0 = Bits(LB_BPC) <> VAR
-  // val lb_out_1 = Bits(LB_BPC) <> VAR
-  // val lb_out_2 = Bits(LB_BPC) <> VAR
 
   val lb_inst = new LineBuffer(
     WIDTH = LB_BPC,
     LEN   = LB_LEN,
-    SCALE - LB_SCALE
+    SCALE = LB_SCALE
   )
 
   lb_inst.clk_in  <> clk_sys
@@ -161,13 +154,9 @@ class FramebufferBram(
   lb_inst.din(0)  <> lb_in_0
   lb_inst.din(1)  <> lb_in_1
   lb_inst.din(2)  <> lb_in_2
-  // lb_inst.dout(0) <> lb_out_0
-  // lb_inst.dout(1) <> lb_out_1
-  // lb_inst.dout(2) <> lb_out_2
 
-  process(clk_sys) {
-    if (clk_sys.rising)
-      fb_cidx_read_p1 :== fb_cidx_read
+  process(clk_sys.rising) {
+    fb_cidx_read_p1 :== fb_cidx_read
   }
 
   val CLUTW     = 3 * CHANW
@@ -183,19 +172,15 @@ class FramebufferBram(
 
   val lb_en_out_p1 = Boolean <> VAR
 
-  process(clk_sys) {
-    if (clk_sys.rising)
-      lb_inst.din(0)
-      // lb_in_0 = clut_colr(3, 0)
-      lb_in_0 :== clut_colr(CHANW - 1, 0)
-      lb_in_1 :== clut_colr(2 * CHANW - 1, CHANW)
-      lb_in_2 :== clut_colr(3 * CHANW - 1, 2 * CHANW)
-      // (lb_in_2, lb_in_1, lb_in_0) :== clut_colr.as(UInt(LB_BPC) X 3)
+  process(clk_sys.rising) {
+    lb_inst.din(0)
+    lb_in_0 :== clut_colr(CHANW - 1, 0)
+    lb_in_1 :== clut_colr(2 * CHANW - 1, CHANW)
+    lb_in_2 :== clut_colr(3 * CHANW - 1, 2 * CHANW)
   }
 
-  process(clk_pix) {
-    if (clk_pix.rising)
-      lb_en_out_p1 :== lb_en_out
+  process(clk_pix.rising) {
+    lb_en_out_p1 :== lb_en_out
   }
 
   process(all) {

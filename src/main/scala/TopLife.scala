@@ -26,13 +26,6 @@ class TopLife(
   val clk_pix_locked = Bit <> VAR
   val rst_pix        = Bit <> VAR
 
-  // assign rst_pix = 0
-
-  // divide_5 u_divide_5 (
-  //     .clk    (clk_100m),
-  //     .clk_out(clk_pix)
-  // )
-
   if (isSDL) then
     process(all) {
       clk_pix_locked :== 1
@@ -44,14 +37,11 @@ class TopLife(
     clock_inst.areset <> !btn_rst_n
     clock_inst.inclk0 <> clk_50m
     clock_inst.c0     <> clk_pix
+    clock_inst.c1     <> clk_100m
     clock_inst.locked <> clk_pix_locked
-    process(all) {
-      clk_100m :== clk_50m
-    }
 
-  process(clk_pix) {
-    if (clk_pix.rising)
-      rst_pix :== !clk_pix_locked // wait for clock lock
+  process(clk_pix.rising) {
+    rst_pix :== !clk_pix_locked // wait for clock lock
   }
 
   // display sync signals and coordinates
@@ -91,14 +81,13 @@ class TopLife(
 
   // start life generation in blanking every GEN_FRAMES
   val cnt_frames = UInt.until(GEN_FRAMES) <> VAR
-  process(clk_100m) {
-    if (clk_100m.rising)
-      life_start := 0
-      if (frame_sys)
-        if (cnt_frames == GEN_FRAMES - 1)
-          life_start := 1
-          cnt_frames := 0
-        else cnt_frames := cnt_frames + 1
+  process(clk_100m.rising) {
+    life_start :== 0
+    if (frame_sys)
+      if (cnt_frames == GEN_FRAMES - 1)
+        life_start :== 1
+        cnt_frames :== 0
+      else cnt_frames :== cnt_frames + 1
 
   }
 
@@ -171,14 +160,13 @@ class TopLife(
   // reading from FB takes one cycle: delay display signals to match
 
   val hsync_p1, vsync_p1 = Bit <> VAR
-  process(clk_pix) {
-    if (clk_pix.rising)
-      hsync_p1 :== hsync
-      vsync_p1 :== vsync
+  process(clk_pix.rising) {
+    hsync_p1 :== hsync
+    vsync_p1 :== vsync
   }
 
   // VGA output
-  process(clk_pix) {
+  process(clk_pix.rising) {
     vga_hsync :== hsync_p1
     vga_vsync :== vsync_p1
     vga_r :== fb_red

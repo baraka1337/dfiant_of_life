@@ -25,8 +25,6 @@ class LineBuffer(
   val set_end  = Boolean <> VAR
   val get_data = Bit     <> VAR
 
-  val tempScale = SInt(cnt_h.width) const SCALE
-  val tempLen   = SInt(addr_out.width + 2) const LEN
   process(clk_out.rising) {
     if (frame)
       addr_out :== 0
@@ -66,7 +64,7 @@ class LineBuffer(
 
   process(clk_in.rising) {
     if (en_in)
-      if (addr_in == (tempLen - 1).bits.resize(addr_out.width).uint)
+      if (addr_in == LEN - 1)
         addr_in :== 0
       else
         addr_in :== addr_in + 1

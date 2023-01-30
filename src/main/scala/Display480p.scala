@@ -58,16 +58,15 @@ class Display480p(
   }
 
   // control signals
-  process(clk_pix) {
-    if (clk_pix.rising)
-      if (rst_pix)
-        de :== 0
-        frame :== 0
-        line :== 0
-      else
-        de :== (y >= VA_STA && x >= HA_STA)
-        frame :== (y == V_STA && x == H_STA)
-        line :== (x == H_STA)
+  process(clk_pix.rising) {
+    if (rst_pix)
+      de :== 0
+      frame :== 0
+      line :== 0
+    else
+      de :== (y >= VA_STA && x >= HA_STA)
+      frame :== (y == V_STA && x == H_STA)
+      line :== (x == H_STA)
   }
   // calculate horizontal and vertical screen position
   process(clk_pix.rising) {

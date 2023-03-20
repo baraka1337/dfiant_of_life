@@ -6,3 +6,6 @@ target/
 /.metals/
 /.bloop/
 *.vhdl
+sandbox
+verilator/obj_dir
+.*/

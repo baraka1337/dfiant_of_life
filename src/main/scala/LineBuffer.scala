@@ -41,7 +41,7 @@ class LineBuffer(
                         set_end :== 1
                     else cnt_v :== cnt_v + 1
                 else addr_out :== addr_out + 1
-            else cnt_h :== cnt_h
+            else cnt_h :== cnt_h + 1
         else if (get_data)
             set_end :== 0
 

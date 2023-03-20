@@ -15,7 +15,7 @@ class TopLife(
     val vga_b     = UInt(4)  <> OUT // 4-bit VGA blue
 
     val de_local   = Bit <> VAR
-    val GEN_FRAMES = 15 // each generation lasts this many frames
+    val GEN_FRAMES = 5 // each generation lasts this many frames
     val SEED_FILE  = "gosper_gun_64x48.mem" // world seed
     // localparam SEED_FILE = "gosper_gun_64x48.mem"  // world seed
 
@@ -27,9 +27,9 @@ class TopLife(
 
     if (isSDL) then
         process(all) {
-            clk_pix_locked :== 1
-            clk_100m       :== clk_50m
-            clk_pix        :== clk_50m
+            clk_pix_locked := 1
+            clk_100m       := clk_50m
+            clk_pix        := clk_50m
         }
     else
         val clock_inst = new PLL
@@ -136,7 +136,7 @@ class TopLife(
 
     // select colour based on cell state
     process(all) {
-        fb_cidx :== life_alive.bits.resize(fb_cidx.width)
+        fb_cidx := life_alive.bits.resize(fb_cidx.width)
         // fb_cidx(0) :== life_alive
         // fb_cidx(1) :== 0
     }

@@ -20,10 +20,9 @@ class Life(
 
     // world buffer selection
     val next_gen = Bit <> VAR // where to write the next generation
-    process(clk) {
-        if (clk.rising)
-            if (start) next_gen := !next_gen // swap every generation
-            if (rst) next_gen   := 0
+    process(clk.rising) {
+        if (start) next_gen :== !next_gen // swap every generation
+        if (rst) next_gen   :== 0
     }
 
     // world in BRAM
@@ -147,7 +146,7 @@ class Life(
                     case 10 =>
                         bot_sr :== (bot_sr(1, 0), data_out) // I
 
-                    case default => addr_read :== 0
+                    case _ => addr_read :== 0
 
                 if (read_step == STEPS - 1)
                     state :== NEIGH
@@ -156,8 +155,8 @@ class Life(
             case NEIGH =>
                 /* verilator lint_off WIDTH */
                 neigh_cnt :== top_sr(0, 0).resize(neigh_cnt.width) + top_sr(1) +
-                    top_sr(2, 2) + mid_sr(0) + mid_sr(2, 2) +
-                    bot_sr(0) + bot_sr(1) + bot_sr(2, 2)
+                    top_sr(2) + mid_sr(0) + mid_sr(2) +
+                    bot_sr(0) + bot_sr(1) + bot_sr(2)
 
                 /* verilator lint_on WIDTH */
                 state :== UPDATE
@@ -214,7 +213,7 @@ class Life(
                 read_step :== 0 // read all nine cells at start of line
                 state     :== READ
 
-            case default =>
+            case _ =>
                 if (start)
                     state :== INIT
                 else

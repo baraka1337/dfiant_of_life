@@ -62,7 +62,7 @@ class FramebufferBram(
     process(clk_sys.rising) {
         we_in_p1   :== we
         cidx_in_p1 :== cidx
-        clip       :== x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT
+        clip       :== y < 0 || y >= HEIGHT || x < 0 || x >= HEIGHT
         if (busy || clip)
             fb_we :== 0
         else
@@ -113,7 +113,7 @@ class FramebufferBram(
                 cnt_h :== 0
                 if (FB_DUALPORT != 0)
                     busy :== 1
-            else
+            else if (cnt_h < LB_LEN)
                 cnt_h        :== cnt_h + 1
                 fb_addr_read :== fb_addr_read + 1
         else

@@ -9,11 +9,11 @@ class ID extends EDDesign:
     println("Hello, welcome to the DFHDL demo!")
     println("Printing the top:")
     import backends.verilog.sv2005
-    val top = new ID
-    // val top = new TopLife
+    val top = new top_life_sdl
     import compiler.stages.StageRunner
     StageRunner.logDebug()
+    println(dfhdlVersion)
     top.compile
         .toFolder("sandbox")
-        .printGenFiles
+        // .printGenFiles
         .lint

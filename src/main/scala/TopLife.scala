@@ -32,7 +32,7 @@ class TopLife(
             clk_pix        := clk_50m
         }
     else
-        val clock_inst = new PLL
+        val clock_inst = new pll
         clock_inst.areset <> !btn_rst_n
         clock_inst.inclk0 <> clk_50m
         clock_inst.c0     <> clk_pix

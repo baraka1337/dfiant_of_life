@@ -7,12 +7,12 @@ class ID extends EDDesign:
 
 @main def hello: Unit =
     println("Hello, welcome to the DFHDL demo!")
+    println(dfhdlVersion)
     println("Printing the top:")
     import backends.verilog.sv2005
-    val top = new top_life_sdl
+    val top = new top_life_de10
     import compiler.stages.StageRunner
     StageRunner.logDebug()
-    println(dfhdlVersion)
     top.compile
         .toFolder("sandbox")
         // .printGenFiles

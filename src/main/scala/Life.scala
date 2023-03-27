@@ -38,6 +38,19 @@ class Life(
     val data_in   = UInt(DATAW)       <> VAR
     val data_out  = UInt(DATAW)       <> VAR
 
+    val read_addresses = SInt(cell_id.width) X 10 <> VAR init Vector(
+      -WORLD_WIDTH - 1, // A
+      -1, // B
+      WORLD_WIDTH - 1, // C
+      -WORLD_WIDTH, // D
+      0, // E
+      WORLD_WIDTH, // F
+      -WORLD_WIDTH + 1, // G
+      1, // H
+      WORLD_WIDTH + 1, // I
+      0 // E
+    )
+
     // add offset to read and write addresses to match buffer used
     val addr_read_offs  = UInt.until(DEPTH) <> VAR
     val addr_write_offs = UInt.until(DEPTH) <> VAR
@@ -74,6 +87,7 @@ class Life(
     val top_sr     = Bits(GRID)               <> VAR // shift reg for neighbours
     val mid_sr     = Bits(GRID)               <> VAR
     val bot_sr     = Bits(GRID)               <> VAR
+    val grid_sr    = Bits(GRID) X GRID        <> VAR
     val neigh_cnt  = UInt.until(GRID * GRID)  <> VAR // count of neighbours
 
     enum State extends Encode:
@@ -104,49 +118,13 @@ class Life(
                 cell_id :== WORLD_WIDTH + 1
 
             case READ =>
-                // 1 cycle to set address and 1 cycle BRAM read latency
-                read_step match
-                    case 0 =>
-                        addr_read :== cell_id - WORLD_WIDTH - 1 // A
-
-                    case 1 =>
-                        addr_read :== cell_id - 1 // B
-
-                    case 2 =>
-                        addr_read             :== cell_id + WORLD_WIDTH - 1 // C
-                        if (!inc_read) top_sr :== (top_sr(1, 0), data_out) // A
-
-                    case 3 =>
-                        addr_read             :== cell_id - WORLD_WIDTH // D
-                        if (!inc_read) mid_sr :== (mid_sr(1, 0), data_out) // B
-
-                    case 4 =>
-                        addr_read             :== cell_id // E
-                        if (!inc_read) bot_sr :== (bot_sr(1, 0), data_out) // C
-
-                    case 5 =>
-                        addr_read             :== cell_id + WORLD_WIDTH // F
-                        if (!inc_read) top_sr :== (top_sr(1, 0), data_out) // D
-
-                    case 6 =>
-                        addr_read             :== cell_id - WORLD_WIDTH + 1 // G
-                        if (!inc_read) mid_sr :== (mid_sr(1, 0), data_out) // E
-
-                    case 7 =>
-                        addr_read             :== cell_id + 1 // H
-                        if (!inc_read) bot_sr :== (bot_sr(1, 0), data_out) // F
-
-                    case 8 =>
-                        addr_read :== cell_id + WORLD_WIDTH + 1 // I
-                        top_sr    :== (top_sr(1, 0), data_out) // G
-
-                    case 9 =>
-                        mid_sr :== (mid_sr(1, 0), data_out) // H
-
-                    case 10 =>
-                        bot_sr :== (bot_sr(1, 0), data_out) // I
-
-                    case _ => addr_read :== 0
+                addr_read :== (cell_id.signed + read_addresses(read_step)).bits.resize(addr_read.width).uint
+                if (read_step >= 2 && (!inc_read || read_step >= 8))
+                    grid_sr(((read_step - 2) % 3).resize(2)) :== (grid_sr(((read_step - 2) % 3).resize(2))(
+                      1,
+                      0
+                    ), data_out)
+                    // neigh_cnt                    :== neigh_cnt + data_out
 
                 if (read_step == STEPS - 1)
                     state :== NEIGH
@@ -154,9 +132,9 @@ class Life(
                     read_step :== read_step + 1
             case NEIGH =>
                 /* verilator lint_off WIDTH */
-                neigh_cnt :== top_sr(0, 0).resize(neigh_cnt.width) + top_sr(1) +
-                    top_sr(2) + mid_sr(0) + mid_sr(2) +
-                    bot_sr(0) + bot_sr(1) + bot_sr(2)
+                neigh_cnt :== grid_sr(0)(0, 0).resize(neigh_cnt.width) + grid_sr(0)(1) +
+                    grid_sr(0)(2) + grid_sr(1)(0) + grid_sr(1)(2) +
+                    grid_sr(2)(0) + grid_sr(2)(1) + grid_sr(2)(2)
 
                 /* verilator lint_on WIDTH */
                 state :== UPDATE
@@ -170,7 +148,7 @@ class Life(
                 y :== cell_y - 1 // correct vertical position for padding
                 /* verilator lint_on WIDTH */
 
-                if (mid_sr(1)) // cell was alive this generation
+                if (grid_sr(1)(1)) // cell was alive this generation
                     if (neigh_cnt == 2 || neigh_cnt == 3) // still alive
                         data_in :== 1
                         alive   :== 1
@@ -198,6 +176,7 @@ class Life(
                     else state :== NEW_LINE
                 else
                     state :== NEW_CELL
+                neigh_cnt :== 0
 
             case NEW_CELL =>
                 cell_x    :== cell_x + 1

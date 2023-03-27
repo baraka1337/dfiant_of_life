@@ -84,17 +84,18 @@ class Life(
     val cell_y     = UInt.until(WORLD_HEIGHT) <> VAR // active cell (vertical)
     val read_step  = UInt.until(STEPS)        <> VAR // reading step
     val inc_read   = Bit                      <> VAR // perform incremental read
-    val top_sr     = Bits(GRID)               <> VAR // shift reg for neighbours
-    val mid_sr     = Bits(GRID)               <> VAR
-    val bot_sr     = Bits(GRID)               <> VAR
     val grid_sr    = Bits(GRID) X GRID        <> VAR
     val neigh_cnt  = UInt.until(GRID * GRID)  <> VAR // count of neighbours
+    val grid_index = UInt(2)                  <> VAR
 
     enum State extends Encode:
         case IDLE, INIT, READ, NEIGH, UPDATE, NEW_CELL, NEW_LINE
     import State.*
     val state = State <> VAR init IDLE
     // life generation state
+    process(all) {
+        grid_index := ((read_step - 2) % 3).resize(2)
+    }
     process(clk.rising) {
         // single-cycle flags: 0 by default
         ready :== 0
@@ -104,10 +105,8 @@ class Life(
         state match
             case INIT =>
                 read_step :== 0
-                inc_read  :== 0
-                top_sr    :== all(0)
-                mid_sr    :== all(0)
-                bot_sr    :== all(0)
+                inc_read  :== 1
+                // grid_sr   :== all(all(0))
                 neigh_cnt :== 0
                 state     :== READ
                 running   :== 1
@@ -120,11 +119,7 @@ class Life(
             case READ =>
                 addr_read :== (cell_id.signed + read_addresses(read_step)).bits.resize(addr_read.width).uint
                 if (read_step >= 2 && (!inc_read || read_step >= 8))
-                    grid_sr(((read_step - 2) % 3).resize(2)) :== (grid_sr(((read_step - 2) % 3).resize(2))(
-                      1,
-                      0
-                    ), data_out)
-                    // neigh_cnt                    :== neigh_cnt + data_out
+                    grid_sr(grid_index) :== (grid_sr(grid_index)(1, 0), data_out)
 
                 if (read_step == STEPS - 1)
                     state :== NEIGH

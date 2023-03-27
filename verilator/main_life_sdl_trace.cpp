@@ -11,7 +11,7 @@
 // screen dimensions
 const int H_RES = 640;
 const int V_RES = 480;
-
+#define TRACE
 typedef struct Pixel
 {              // for SDL texture
     uint8_t a; // transparency

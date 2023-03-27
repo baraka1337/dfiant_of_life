@@ -17,12 +17,13 @@ life_sdl: life_sdl.exe
 
 %.mk: main_life_sdl.cpp
 	verilator $(TRACE_FLAG) -Wno-WIDTHEXPAND -Wno-UNSIGNED -I${DIR} -I${DFIANT} \
- -cc ${DFIANT}/top_life_sdl.sv --exe main_life_sdl.cpp -o $(basename $@) \
+ -cc ${DFIANT}/top_life_sdl.sv --exe main_life_sdl${TRACE_END}.cpp -o $(basename $@) \
 		-CFLAGS "${CFLAGS} ${SDL_CFLAGS}" -LDFLAGS "${SDL_LDFLAGS}"
 
 all: life_sdl
 
-trace: TRACE_FLAG=-DTRACE
+trace: TRACE_FLAG=--trace
+trace: TRACE_END=_trace
 trace: life_sdl
 
 clean:

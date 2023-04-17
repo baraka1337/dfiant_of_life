@@ -14,8 +14,11 @@ class BramSdp(
     val data_in    = UInt(WIDTH)       <> IN
     val data_out   = UInt(WIDTH)       <> OUT
 
-    val memory =
-        UInt(WIDTH) X DEPTH <> VAR init binaryFileToIntVector(INIT_F, WIDTH, DEPTH)
+    val memory = if (INIT_F.isEmpty) {
+        UInt(WIDTH) X DEPTH <> VAR setName "memory"
+    } else {
+        UInt(WIDTH) X DEPTH <> VAR init binaryFileToIntVector(INIT_F, WIDTH, DEPTH) setName "memory"
+    }
 
     process(clk_write.rising) {
         if (we)

@@ -1,4 +1,3 @@
-// scalafmt: { align.tokens = [{code = "<>"}, {code = "="}, {code = "=>"}, {code = ":="}]}
 import dfhdl.*
 
 class LineBuffer(
@@ -28,16 +27,16 @@ class LineBuffer(
     process(clk_out.rising) {
         if (frame)
             addr_out :== 0
-            cnt_h :== 0
-            cnt_v :== 0
-            set_end :== 1
+            cnt_h    :== 0
+            cnt_v    :== 0
+            set_end  :== 1
         else if (en_out && !set_end)
             if (cnt_h == SCALE - 1)
                 cnt_h :== 0
                 if (addr_out == LEN - 1)
                     addr_out :== 0
                     if (cnt_v == SCALE - 1)
-                        cnt_v :== 0
+                        cnt_v   :== 0
                         set_end :== 1
                     else cnt_v :== cnt_v + 1
                 else addr_out :== addr_out + 1
@@ -47,9 +46,9 @@ class LineBuffer(
 
         if (rst_out)
             addr_out :== 0
-            cnt_h :== 0
-            cnt_v :== 0
-            set_end :== 0
+            cnt_h    :== 0
+            cnt_v    :== 0
+            set_end  :== 0
     }
 
     process(all) {

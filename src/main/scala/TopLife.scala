@@ -1,4 +1,5 @@
 import dfhdl.*
+import GameDefs.*
 
 class TopLife(
     val isSDL: Boolean = false
@@ -14,10 +15,7 @@ class TopLife(
     val vga_g     = UInt(4)  <> OUT // 4-bit VGA green
     val vga_b     = UInt(4)  <> OUT // 4-bit VGA blue
 
-    val de_local   = Bit <> VAR
-    val GEN_FRAMES = 5 // each generation lasts this many frames
-    val SEED_FILE  = "gosper_gun_64x48.mem" // world seed
-    // localparam SEED_FILE = "gosper_gun_64x48.mem"  // world seed
+    val de_local = Bit <> VAR
 
     // generate pixel clock
     val clk_pix        = Bit <> VAR
@@ -44,7 +42,6 @@ class TopLife(
     }
 
     // display sync signals and coordinates
-    val CORDW        = 16
     val hsync, vsync = Bit <> VAR
     val frame, line  = Bit <> VAR
 
@@ -74,8 +71,8 @@ class TopLife(
 
     // life signals
     /* verilator lint_off UNUSED */
-    val life_start               = Bit <> VAR
-    val life_alive, life_changed = Bit <> VAR
+    val life_start = Bit <> VAR
+    val life_alive = Bit <> VAR
     /* verilator lint_on UNUSED */
 
     // start life generation in blanking every GEN_FRAMES
@@ -91,31 +88,17 @@ class TopLife(
     }
 
     // framebuffer (FB)
-    val FB_WIDTH   = 64
-    val FB_HEIGHT  = 48
-    val FB_CIDXW   = 2
-    val FB_CHANW   = 4
-    val FB_SCALE   = 10
-    val FB_IMAGE   = ""
-    val FB_PALETTE = "life_palette.mem"
 
-    val fb_we    = Bit            <> VAR
-    val fbx, fby = SInt(CORDW)    <> VAR // framebuffer coordinates
-    val fb_cidx  = Bits(FB_CIDXW) <> VAR
+    val fb_we    = Bit         <> VAR
+    val fbx, fby = SInt(CORDW) <> VAR // framebuffer coordinates
+    val fb_cidx  = Bits(CIDXW) <> VAR
     /* verilator lint_off UNUSED */
     val fb_busy = Bit <> VAR // when framebuffer is busy it cannot accept writes
     /* verilator lint_on UNUSED */
-    val fb_red, fb_green, fb_blue = UInt(FB_CHANW) <> VAR // colours for display
+    val fb_red, fb_green, fb_blue = UInt(CHANW) <> VAR // colours for display
 
-    val fb_inst = new FramebufferBram(
-      WIDTH     = FB_WIDTH,
-      HEIGHT    = FB_HEIGHT,
-      CIDXW     = FB_CIDXW,
-      CHANW     = FB_CHANW,
-      SCALE     = FB_SCALE,
-      F_IMAGE   = FB_IMAGE,
-      F_PALETTE = FB_PALETTE
-    )
+    val fb_inst = new FramebufferBram()
+
     fb_inst.clk_sys <> clk_100m
     fb_inst.clk_pix <> clk_pix
     fb_inst.rst_sys <> 0
@@ -141,20 +124,14 @@ class TopLife(
         // fb_cidx(1) :== 0
     }
 
-    val life_inst = new Life(
-      CORDW  = CORDW,
-      WIDTH  = FB_WIDTH,
-      HEIGHT = FB_HEIGHT,
-      F_INIT = SEED_FILE
-    )
-    life_inst.clk     <> clk_100m // clock
-    life_inst.rst     <> false // reset
-    life_inst.start   <> life_start // start generation
-    fb_we             <> life_inst.ready // cell state ready to be read
-    life_inst.alive   <> life_alive // is the cell alive? (when ready)
-    life_inst.changed <> life_changed // cell's state changed (when ready)
-    life_inst.x       <> fbx // horizontal cell position
-    life_inst.y       <> fby // vertical cell position
+    val life_inst = new Life()
+    life_inst.clk   <> clk_100m // clock
+    life_inst.rst   <> false // reset
+    life_inst.start <> life_start // start generation
+    fb_we           <> life_inst.ready // cell state ready to be read
+    life_inst.alive <> life_alive // is the cell alive? (when ready)
+    life_inst.x     <> fbx // horizontal cell position
+    life_inst.y     <> fby // vertical cell position
 
     // reading from FB takes one cycle: delay display signals to match
 

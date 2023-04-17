@@ -1,17 +1,9 @@
 import dfhdl.*
 import scala.math._
 import Utils.*
+import GameDefs.*
 
-class FramebufferBram(
-    val CORDW: Int        = 16,
-    val WIDTH: Int        = 320,
-    val HEIGHT: Int       = 180,
-    val CIDXW: Int        = 4,
-    val CHANW: Int        = 4,
-    val SCALE: Int        = 4,
-    val F_IMAGE: String   = "",
-    val F_PALETTE: String = ""
-) extends EDDesign:
+class FramebufferBram extends EDDesign:
     val clk_sys = Bit         <> IN
     val clk_pix = Bit         <> IN
     val rst_sys = Bit         <> IN
@@ -86,7 +78,6 @@ class FramebufferBram(
 
     val LB_SCALE = SCALE
     val LB_LEN   = WIDTH
-    val LB_BPC   = CHANW
 
     val lb_data_req = Boolean                <> VAR
     val cnt_h       = UInt.until(LB_LEN + 1) <> VAR
@@ -130,12 +121,12 @@ class FramebufferBram(
             busy :== 0
     }
 
-    val lb_in_0 = Bits(LB_BPC) <> VAR
-    val lb_in_1 = Bits(LB_BPC) <> VAR
-    val lb_in_2 = Bits(LB_BPC) <> VAR
+    val lb_in_0 = Bits(CHANW) <> VAR
+    val lb_in_1 = Bits(CHANW) <> VAR
+    val lb_in_2 = Bits(CHANW) <> VAR
 
     val lb_inst = new LineBuffer(
-      WIDTH = LB_BPC,
+      WIDTH = CHANW,
       LEN   = LB_LEN,
       SCALE = LB_SCALE
     )
@@ -157,7 +148,6 @@ class FramebufferBram(
         fb_cidx_read_p1 :== fb_cidx_read
     }
 
-    val CLUTW     = 3 * CHANW
     val clut_colr = Bits(CLUTW) <> VAR
     val clut = new RomAsync(
       WIDTH  = CLUTW,

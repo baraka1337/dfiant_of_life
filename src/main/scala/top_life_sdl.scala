@@ -5,14 +5,12 @@ class top_life_sdl(
     val isSDL: Boolean = false
 ) extends EDDesign:
     val sim_clk = Bit         <> IN // 100 MHz clock
-    val sim_rst = Bit         <> IN // reset button (active low)
     val sdl_sx  = UInt(CORDW) <> OUT // horizontal SDL position
     val sdl_sy  = UInt(CORDW) <> OUT // vertical SDL position
     val sdl_de  = Bit         <> OUT
     val sdl_r   = UInt(8)     <> OUT // 8-bit VGA red
     val sdl_g   = UInt(8)     <> OUT // 8-bit VGA green
     val sdl_b   = UInt(8)     <> OUT // 8-bit VGA blue
-
 
     val vga_r = UInt(4) <> VAR
     val vga_g = UInt(4) <> VAR
@@ -28,19 +26,14 @@ class top_life_sdl(
         sdl_r := vga_r.bits.repeat(2)
         sdl_g := vga_g.bits.repeat(2)
         sdl_b := vga_b.bits.repeat(2)
-
-        // sdl_r := vga_r.resize(8)
-        // sdl_g := vga_g.resize(8)
-        // sdl_b := vga_b.resize(8)
     }
 
     val top_life = new TopLife(isSDL = true)
 
-    top_life.sx        <> sx
-    top_life.sy        <> sy
-    top_life.de        <> sdl_de
-    top_life.btn_rst_n <> sim_rst
-    top_life.clk_50m   <> sim_clk
+    top_life.sx      <> sx
+    top_life.sy      <> sy
+    top_life.de      <> sdl_de
+    top_life.clk_50m <> sim_clk
 
     top_life.vga_r <> vga_r
     top_life.vga_g <> vga_g

@@ -1,12 +1,8 @@
 import dfhdl.*
 import Utils.*
+import GameDefs.*
 
-class Life(
-    val CORDW: Int     = 16, // signed coordinate width
-    val WIDTH: Int     = 6, // world width in cells
-    val HEIGHT: Int    = 6, // world height in cells
-    val F_INIT: String = "" // initial world state
-) extends EDDesign:
+class Life extends EDDesign:
     val clk     = Bit         <> IN // clock
     val rst     = Boolean     <> IN // reset
     val start   = Boolean     <> IN // start generation
@@ -66,7 +62,7 @@ class Life(
     val bram_inst = new BramSdp(
       WIDTH  = DATAW,
       DEPTH  = DEPTH,
-      INIT_F = F_INIT
+      INIT_F = SEED_FILE
     )
 
     bram_inst.clk_write  <> clk

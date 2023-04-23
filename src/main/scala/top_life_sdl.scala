@@ -1,4 +1,5 @@
 import dfhdl.*
+import GameDefs.*
 
 class top_life_sdl(
     val CORDW: Int     = 10,
@@ -12,29 +13,19 @@ class top_life_sdl(
     val sdl_g   = UInt(8)     <> OUT // 8-bit VGA green
     val sdl_b   = UInt(8)     <> OUT // 8-bit VGA blue
 
-    val vga_r = UInt(4) <> VAR
-    val vga_g = UInt(4) <> VAR
-    val vga_b = UInt(4) <> VAR
-
-    val sx = SInt(16) <> VAR
-    val sy = SInt(16) <> VAR
+    val pixel = Pixel <> VAR
 
     process(all) {
-        sdl_sx := sx.bits.resize(CORDW)
-        sdl_sy := sy.bits.resize(CORDW)
+        sdl_sx := pixel.x.bits.resize(CORDW)
+        sdl_sy := pixel.y.bits.resize(CORDW)
 
-        sdl_r := vga_r.bits.repeat(2)
-        sdl_g := vga_g.bits.repeat(2)
-        sdl_b := vga_b.bits.repeat(2)
+        sdl_r := top_life.vga_color.red.bits.repeat(2)
+        sdl_g := top_life.vga_color.green.bits.repeat(2)
+        sdl_b := top_life.vga_color.blue.bits.repeat(2)
     }
 
     val top_life = new TopLife(isSDL = true)
 
-    top_life.sx      <> sx
-    top_life.sy      <> sy
-    top_life.de      <> sdl_de
-    top_life.clk_50m <> sim_clk
-
-    top_life.vga_r <> vga_r
-    top_life.vga_g <> vga_g
-    top_life.vga_b <> vga_b
+    top_life.sdl_pixel <> pixel
+    top_life.de        <> sdl_de
+    top_life.clk_50m   <> sim_clk

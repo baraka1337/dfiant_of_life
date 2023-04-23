@@ -12,15 +12,12 @@ class FramebufferBram extends EDDesign:
     val frame   = Bit         <> IN
     val line    = Bit         <> IN
     val we      = Boolean     <> IN
-    val x       = SInt(CORDW) <> IN
-    val y       = SInt(CORDW) <> IN
+    val pixel   = Pixel       <> IN
     val cidx    = UInt(CIDXW) <> IN
 
-    val busy  = Bit         <> OUT
-    val clip  = Bit         <> OUT
-    val red   = UInt(CHANW) <> OUT
-    val green = UInt(CHANW) <> OUT
-    val blue  = UInt(CHANW) <> OUT
+    val busy  = Bit    <> OUT
+    val clip  = Bit    <> OUT
+    val color = PColor <> OUT
 
     val frame_sys = Bit <> VAR
     val xd_frame  = new XD
@@ -39,8 +36,8 @@ class FramebufferBram extends EDDesign:
     val x_add = SInt(CORDW) <> VAR
 
     process(clk_sys.rising) {
-        fb_addr_line :== (y.bits * WIDTH).resize(fb_addr_line.width)
-        x_add        :== x
+        fb_addr_line :== (pixel.y.bits * WIDTH).resize(fb_addr_line.width)
+        x_add        :== pixel.x
         fb_addr_write :== (x_add + fb_addr_line.signed).bits
             .resize(fb_addr_write.width)
             .uint
@@ -54,7 +51,7 @@ class FramebufferBram extends EDDesign:
     process(clk_sys.rising) {
         we_in_p1   :== we
         cidx_in_p1 :== cidx
-        clip       :== y < 0 || y >= HEIGHT || x < 0 || x >= HEIGHT
+        clip       :== pixel.y < 0 || pixel.y >= HEIGHT || pixel.x < 0 || pixel.x >= HEIGHT
         if (busy || clip)
             fb_we :== 0
         else
@@ -173,11 +170,11 @@ class FramebufferBram extends EDDesign:
 
     process(all) {
         if (lb_en_out_p1)
-            red   := lb_inst.dout(2)
-            green := lb_inst.dout(1)
-            blue  := lb_inst.dout(0)
+            color.red   := lb_inst.dout(2)
+            color.green := lb_inst.dout(1)
+            color.blue  := lb_inst.dout(0)
         else
-            red   := 0
-            green := 0
-            blue  := 0
+            color.red   := all(0)
+            color.green := all(0)
+            color.blue  := all(0)
     }

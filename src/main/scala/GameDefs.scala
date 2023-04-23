@@ -23,10 +23,10 @@ object GameDefs:
         y: SInt[CORDW.type] <> VAL
     ) extends Struct
 
-    case class Color(
-        red: Bits[CLUTW.type] <> VAL,
-        green: Bits[CLUTW.type] <> VAL,
-        blue: Bits[CLUTW.type] <> VAL
+    case class PColor(
+        red: Bits[CHANW.type] <> VAL,
+        green: Bits[CHANW.type] <> VAL,
+        blue: Bits[CHANW.type] <> VAL
     ) extends Struct
 
 // object GameDefs1 extends GameDefs(16)

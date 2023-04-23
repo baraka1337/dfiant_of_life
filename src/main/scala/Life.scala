@@ -3,16 +3,15 @@ import Utils.*
 import GameDefs.*
 
 class Life extends EDDesign:
-    val clk     = Bit         <> IN // clock
-    val rst     = Boolean     <> IN // reset
-    val start   = Boolean     <> IN // start generation
-    val ready   = Boolean     <> OUT // cell state ready to be read
-    val alive   = Bit         <> OUT // is the cell alive? (when ready)
-    val changed = Bit         <> OUT // cell's state changed (when ready)
-    val x       = SInt(CORDW) <> OUT
-    val y       = SInt(CORDW) <> OUT
-    val running = Bit         <> OUT // life is running
-    val done    = Bit         <> OUT // generation complete (high for one tick)
+    val clk     = Bit     <> IN // clock
+    val rst     = Boolean <> IN // reset
+    val start   = Boolean <> IN // start generation
+    val ready   = Boolean <> OUT // cell state ready to be read
+    val alive   = Bit     <> OUT // is the cell alive? (when ready)
+    val changed = Bit     <> OUT // cell's state changed (when ready)
+    val pixel   = Pixel   <> OUT
+    val running = Bit     <> OUT // life is running
+    val done    = Bit     <> OUT // generation complete (high for one tick)
 
     // world buffer selection
     val next_gen = Bit <> VAR // where to write the next generation
@@ -74,8 +73,6 @@ class Life extends EDDesign:
     bram_inst.data_out   <> data_out
 
     // cell coordinates
-    val GRID: Int  = 3 // neighbours are a 3x3 grid
-    val STEPS: Int = 11 // 9 reads and 2 cycles of latency
     val cell_x     = UInt.until(WORLD_WIDTH)  <> VAR // active cell (horizontal)
     val cell_y     = UInt.until(WORLD_HEIGHT) <> VAR // active cell (vertical)
     val read_step  = UInt.until(STEPS)        <> VAR // reading step
@@ -122,6 +119,7 @@ class Life extends EDDesign:
                 else
                     read_step :== read_step + 1
             case NEIGH =>
+                // def sumbits(list: (DFBit <> VAL)*): DFUInt[Int] <> VAL = ???
                 /* verilator lint_off WIDTH */
                 neigh_cnt :== grid_sr(0)(0, 0).resize(neigh_cnt.width) + grid_sr(0)(1) +
                     grid_sr(0)(2) + grid_sr(1)(0) + grid_sr(1)(2) +
@@ -135,8 +133,8 @@ class Life extends EDDesign:
                 we    :== 1 // write new cell state next cycle
                 ready :== 1 // ready for output next cycle
                 /* verilator lint_off WIDTH */
-                x :== cell_x - 1 // correct horizontal position for padding
-                y :== cell_y - 1 // correct vertical position for padding
+                pixel.x :== cell_x - 1 // correct horizontal position for padding
+                pixel.y :== cell_y - 1 // correct vertical position for padding
                 /* verilator lint_on WIDTH */
 
                 if (grid_sr(1)(1)) // cell was alive this generation
@@ -194,8 +192,8 @@ class Life extends EDDesign:
             ready   :== 0
             alive   :== 0
             changed :== 0
-            x       :== 0
-            y       :== 0
+            pixel.x :== 0
+            pixel.y :== 0
             running :== 0
             done    :== 0
     }

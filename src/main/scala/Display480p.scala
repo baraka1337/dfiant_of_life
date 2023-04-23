@@ -42,31 +42,29 @@ class Display480p(
     val y = SInt(CORDW) <> VAR init V_STA
     // generate horizontal and vertical sync with correct polarity
     process(clk_pix.rising) {
-        if (rst_pix)
-            if (H_POL)
-                hsync :== (x > HS_STA && y <= HS_END)
-            else
-                hsync :== !(x > HS_STA && y <= HS_END)
-
-            if (V_POL)
-                vsync :== (y > VS_STA && y <= VS_END)
-            else
-                vsync :== !(y > VS_STA && y <= VS_END)
+        if (H_POL)
+            hsync :== (x > HS_STA && x <= HS_END)
         else
+            hsync :== !(x > HS_STA && x <= HS_END)
+
+        if (V_POL)
+            vsync :== (y > VS_STA && y <= VS_END)
+        else
+            vsync :== !(y > VS_STA && y <= VS_END)
+        if (rst_pix)
             hsync :== !H_POL
             vsync :== !V_POL
     }
 
     // control signals
     process(clk_pix.rising) {
+        de    :== (y >= VA_STA && x >= HA_STA)
+        frame :== (y == V_STA && x == H_STA)
+        line  :== (x == H_STA)
         if (rst_pix)
             de    :== 0
             frame :== 0
             line  :== 0
-        else
-            de    :== (y >= VA_STA && x >= HA_STA)
-            frame :== (y == V_STA && x == H_STA)
-            line  :== (x == H_STA)
     }
     // calculate horizontal and vertical screen position
     process(clk_pix.rising) {

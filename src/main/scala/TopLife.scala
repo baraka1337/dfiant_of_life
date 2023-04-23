@@ -4,18 +4,18 @@ import GameDefs.*
 class TopLife(
     val isSDL: Boolean = false
 ) extends EDDesign:
-    val clk_50m   = Bit      <> IN // 100 MHz clock
-    val btn_rst_n = Bit      <> IN // reset button (active low)
-    val vga_hsync = Bit      <> OUT // horizontal sync
-    val vga_vsync = Bit      <> OUT // vertical sync
-    val sx        = SInt(16) <> OUT // horizontal SDL position
-    val sy        = SInt(16) <> OUT // vertical SDL position
-    val de        = Bit      <> OUT
-    val vga_r     = UInt(4)  <> OUT // 4-bit VGA red
-    val vga_g     = UInt(4)  <> OUT // 4-bit VGA green
-    val vga_b     = UInt(4)  <> OUT // 4-bit VGA blue
+    val clk_50m   = Bit    <> IN // 100 MHz clock
+    val btn_rst_n = Bit    <> IN // reset button (active low)
+    val vga_hsync = Bit    <> OUT // horizontal sync
+    val vga_vsync = Bit    <> OUT // vertical sync
+    val sdl_pixel = Pixel  <> OUT
+    val de        = Bit    <> OUT
+    val vga_color = PColor <> OUT
 
-    val de_local = Bit <> VAR
+    val de_local   = Bit <> VAR
+    val GEN_FRAMES = 5 // each generation lasts this many frames
+    val SEED_FILE  = "gosper_gun_64x48.mem" // world seed
+    // localparam SEED_FILE = "gosper_gun_64x48.mem"  // world seed
 
     // generate pixel clock
     val clk_pix        = Bit <> VAR
@@ -42,6 +42,7 @@ class TopLife(
     }
 
     // display sync signals and coordinates
+    val CORDW        = 16
     val hsync, vsync = Bit <> VAR
     val frame, line  = Bit <> VAR
 
@@ -52,10 +53,12 @@ class TopLife(
     val display_inst = new Display480p(
       CORDW = CORDW
     )
+    process(all) {
+        sdl_pixel.x :== display_inst.sx
+        sdl_pixel.y :== display_inst.sy
+    }
     display_inst.clk_pix <> clk_pix
     display_inst.rst_pix <> rst_pix
-    display_inst.sx      <> sx
-    display_inst.sy      <> sy
     display_inst.de      <> de_local
     display_inst.hsync   <> hsync
     display_inst.vsync   <> vsync
@@ -71,8 +74,8 @@ class TopLife(
 
     // life signals
     /* verilator lint_off UNUSED */
-    val life_start = Bit <> VAR
-    val life_alive = Bit <> VAR
+    val life_start               = Bit <> VAR
+    val life_alive, life_changed = Bit <> VAR
     /* verilator lint_on UNUSED */
 
     // start life generation in blanking every GEN_FRAMES
@@ -87,18 +90,15 @@ class TopLife(
 
     }
 
-    // framebuffer (FB)
-
     val fb_we    = Bit         <> VAR
-    val fbx, fby = SInt(CORDW) <> VAR // framebuffer coordinates
+    val fb_pixel = Pixel       <> VAR // framebuffer coordinates
     val fb_cidx  = Bits(CIDXW) <> VAR
     /* verilator lint_off UNUSED */
     val fb_busy = Bit <> VAR // when framebuffer is busy it cannot accept writes
     /* verilator lint_on UNUSED */
-    val fb_red, fb_green, fb_blue = UInt(CHANW) <> VAR // colours for display
+    val color = PColor <> VAR
 
     val fb_inst = new FramebufferBram()
-
     fb_inst.clk_sys <> clk_100m
     fb_inst.clk_pix <> clk_pix
     fb_inst.rst_sys <> 0
@@ -108,14 +108,11 @@ class TopLife(
     fb_inst.frame <> frame
     fb_inst.line  <> line
     fb_inst.we    <> fb_we
-    fb_inst.x     <> fbx
-    fb_inst.y     <> fby
+    fb_inst.pixel <> fb_pixel
     fb_inst.cidx  <> fb_cidx
     fb_inst.busy  <> fb_busy
     // fb_inst.clip <>
-    fb_inst.red   <> fb_red
-    fb_inst.green <> fb_green
-    fb_inst.blue  <> fb_blue
+    fb_inst.color <> color
 
     // select colour based on cell state
     process(all) {
@@ -130,8 +127,7 @@ class TopLife(
     life_inst.start <> life_start // start generation
     fb_we           <> life_inst.ready // cell state ready to be read
     life_inst.alive <> life_alive // is the cell alive? (when ready)
-    life_inst.x     <> fbx // horizontal cell position
-    life_inst.y     <> fby // vertical cell position
+    life_inst.pixel <> fb_pixel // horizontal cell position
 
     // reading from FB takes one cycle: delay display signals to match
 
@@ -145,7 +141,5 @@ class TopLife(
     process(clk_pix.rising) {
         vga_hsync :== hsync_p1
         vga_vsync :== vsync_p1
-        vga_r     :== fb_red
-        vga_g     :== fb_green
-        vga_b     :== fb_blue
+        vga_color :== color
     }

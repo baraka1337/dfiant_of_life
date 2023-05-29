@@ -68,12 +68,10 @@ int main(int argc, char *argv[])
     Vtop_life_sdl *top = new Vtop_life_sdl;
 
     // reset
-    top->sim_rst = 1;
     top->sim_clk = 0;
     top->eval();
     top->sim_clk = 1;
     top->eval();
-    top->sim_rst = 0;
     top->sim_clk = 0;
     top->eval();
 

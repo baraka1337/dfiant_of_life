@@ -9,3 +9,9 @@ target/
 sandbox
 verilator/obj_dir
 .*/
+quartus/*
+!quartus/game_of_life.tcl
+!quartus/pll_bb.v
+!quartus/pll.v
+!quartus/pll.qip
+!quartus/pll.ppf

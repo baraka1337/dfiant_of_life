@@ -3,15 +3,18 @@ import Utils.*
 import GameDefs.*
 
 class Life extends EDDesign:
-    val clk     = Bit     <> IN // clock
-    val rst     = Boolean <> IN // reset
-    val start   = Boolean <> IN // start generation
-    val ready   = Boolean <> OUT // cell state ready to be read
-    val alive   = Bit     <> OUT // is the cell alive? (when ready)
-    val changed = Bit     <> OUT // cell's state changed (when ready)
-    val pixel   = Pixel   <> OUT
-    val running = Bit     <> OUT // life is running
-    val done    = Bit     <> OUT // generation complete (high for one tick)
+    val clk   = Bit     <> IN // clock
+    val rst   = Boolean <> IN // reset
+    val start = Boolean <> IN // start generation
+    val ready = Boolean <> OUT // cell state ready to be read
+    val alive = Bit     <> OUT // is the cell alive? (when ready)
+    @hw.unused
+    val changed = Bit   <> VAR // cell's state changed (when ready)
+    val pixel   = Pixel <> OUT
+    @hw.unused
+    val running = Bit <> VAR // life is running
+    @hw.unused
+    val done = Bit <> VAR // generation complete (high for one tick)
 
     // world buffer selection
     val next_gen = Bit <> VAR // where to write the next generation

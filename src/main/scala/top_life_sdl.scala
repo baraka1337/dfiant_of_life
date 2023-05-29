@@ -15,6 +15,8 @@ class top_life_sdl(
 
     val pixel = Pixel <> VAR
 
+    val top_life = new TopLife(isSDL = true)
+
     process(all) {
         sdl_sx := pixel.x.bits.resize(CORDW)
         sdl_sy := pixel.y.bits.resize(CORDW)
@@ -24,8 +26,8 @@ class top_life_sdl(
         sdl_b := top_life.vga_color.blue.bits.repeat(2)
     }
 
-    val top_life = new TopLife(isSDL = true)
-
     top_life.sdl_pixel <> pixel
     top_life.de        <> sdl_de
     top_life.clk_50m   <> sim_clk
+    top_life.vga_hsync <> OPEN
+    top_life.vga_vsync <> OPEN

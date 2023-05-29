@@ -54,8 +54,8 @@ class TopLife(
       CORDW = CORDW
     )
     process(all) {
-        sdl_pixel.x :== display_inst.sx
-        sdl_pixel.y :== display_inst.sy
+        sdl_pixel.x := display_inst.sx
+        sdl_pixel.y := display_inst.sy
     }
     display_inst.clk_pix <> clk_pix
     display_inst.rst_pix <> rst_pix
@@ -74,8 +74,8 @@ class TopLife(
 
     // life signals
     /* verilator lint_off UNUSED */
-    val life_start               = Bit <> VAR
-    val life_alive, life_changed = Bit <> VAR
+    val life_start = Bit <> VAR
+    val life_alive = Bit <> VAR
     /* verilator lint_on UNUSED */
 
     // start life generation in blanking every GEN_FRAMES
@@ -94,6 +94,7 @@ class TopLife(
     val fb_pixel = Pixel       <> VAR // framebuffer coordinates
     val fb_cidx  = Bits(CIDXW) <> VAR
     /* verilator lint_off UNUSED */
+    @hw.unused
     val fb_busy = Bit <> VAR // when framebuffer is busy it cannot accept writes
     /* verilator lint_on UNUSED */
     val color = PColor <> VAR
@@ -111,7 +112,7 @@ class TopLife(
     fb_inst.pixel <> fb_pixel
     fb_inst.cidx  <> fb_cidx
     fb_inst.busy  <> fb_busy
-    // fb_inst.clip <>
+    fb_inst.clip  <> OPEN
     fb_inst.color <> color
 
     // select colour based on cell state

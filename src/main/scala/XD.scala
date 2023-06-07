@@ -1,22 +1,16 @@
 import dfhdl.*
+import dfhdl.core.RTDomain
 
-class XD extends EDDesign:
-    val clk_src  = Bit <> IN
-    val clk_dst  = Bit <> IN
-    val flag_src = Bit <> IN
-    val flag_dst = Bit <> OUT
+class XD(srcCfg: RTDomainCfg, dstCfg: RTDomainCfg) extends RTDesign:
+    
+    val src = new RTDomain(srcCfg):
+        val flag   = Bit <> IN
+        val toggle = Bit <> REG init 0
+        toggle.din := toggle ^ flag
 
-    val toggle_src = Bit     <> VAR init 0
-    val shr_dst    = Bits(4) <> VAR init all(0)
+    val dst = new RTDomain(dstCfg):
+        val flag = Bit     <> OUT
+        val shr  = Bits(4) <> REG init all(0)
+        shr.din := (shr(2, 0), src.toggle)
 
-    process(clk_src.rising) {
-        toggle_src :== toggle_src ^ flag_src
-    }
-
-    process(clk_dst.rising) {
-        shr_dst :== (shr_dst(2, 0), toggle_src)
-    }
-
-    process(all) {
-        flag_dst := shr_dst(3) ^ shr_dst(2)
-    }
+        flag := shr(3) ^ shr(2)

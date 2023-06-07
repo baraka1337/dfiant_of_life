@@ -2,6 +2,7 @@ import dfhdl.*
 import Utils.*
 
 class Display480p(
+    val cfg: RTDomainCfg,
     val CORDW: Int     = 16, // signed coordinate width (bits)
     val H_RES: Int     = 640, // horizontal resolution (pixels)
     val V_RES: Int     = 480, // vertical resolution (lines)
@@ -13,16 +14,14 @@ class Display480p(
     val V_BP: Int      = 33, // vertical back porch
     val H_POL: Boolean = false, // horizontal sync polarity (0:neg, 1:pos)
     val V_POL: Boolean = false // vertical sync polarity (0:neg, 1:pos)
-) extends EDDesign:
-    val clk_pix = Bit         <> IN
-    val rst_pix = Bit         <> IN
-    val hsync   = Bit         <> OUT
-    val vsync   = Bit         <> OUT
-    val de      = Bit         <> OUT
-    val frame   = Bit         <> OUT
-    val line    = Bit         <> OUT
-    val sx      = SInt(CORDW) <> OUT
-    val sy      = SInt(CORDW) <> OUT
+) extends RTDesign(cfg):
+    val hsync = Bit         <> OUT
+    val vsync = Bit         <> OUT
+    val de    = Bit         <> OUT
+    val frame = Bit         <> OUT
+    val line  = Bit         <> OUT
+    val sx    = SInt(CORDW) <> OUT
+    val sy    = SInt(CORDW) <> OUT
 
     // horizontal timings
     val H_STA  = 0 - H_FP - H_SYNC - H_BP // horizontal start
@@ -38,53 +37,33 @@ class Display480p(
     val VA_STA = 0 // active start
     val VA_END = V_RES - 1 // active end
 
-    val x = SInt(CORDW) <> VAR init H_STA
-    val y = SInt(CORDW) <> VAR init V_STA
+    val x = SInt(CORDW) <> REG init H_STA
+    val y = SInt(CORDW) <> REG init V_STA
     // generate horizontal and vertical sync with correct polarity
-    process(clk_pix.rising) {
-        if (H_POL)
-            hsync :== (x > HS_STA && x <= HS_END)
-        else
-            hsync :== !(x > HS_STA && x <= HS_END)
+    if (H_POL)
+        hsync := (x > HS_STA && x <= HS_END).reg(1, initValue = !H_POL)
+    else
+        hsync := !(x > HS_STA && x <= HS_END).reg(1, initValue = !H_POL)
 
-        if (V_POL)
-            vsync :== (y > VS_STA && y <= VS_END)
-        else
-            vsync :== !(y > VS_STA && y <= VS_END)
-        if (rst_pix)
-            hsync :== !H_POL
-            vsync :== !V_POL
-    }
+    if (V_POL)
+        vsync := (y > VS_STA && y <= VS_END).reg(1, initValue = !V_POL)
+    else
+        vsync := !(y > VS_STA && y <= VS_END).reg(1, initValue = !V_POL)
 
     // control signals
-    process(clk_pix.rising) {
-        de    :== (y >= VA_STA && x >= HA_STA)
-        frame :== (y == V_STA && x == H_STA)
-        line  :== (x == H_STA)
-        if (rst_pix)
-            de    :== 0
-            frame :== 0
-            line  :== 0
-    }
+    de    := (y >= VA_STA && x >= HA_STA).reg(1, initValue = 0)
+    frame := (y == V_STA && x == H_STA).reg(1, initValue = 0)
+    line  := (x == H_STA).reg(1, initValue = 0)
+
     // calculate horizontal and vertical screen position
-    process(clk_pix.rising) {
-        if (x == HA_END) // last pixel on line?
-            x :== H_STA
-            if (y == VA_END)
-                y :== V_STA
-            else
-                y :== y + 1 // last line on screen?
-        else x :== x + 1
-        if (rst_pix)
-            x :== H_STA
-            y :== V_STA
-    }
+    if (x == HA_END) // last pixel on line?
+        x.din := H_STA
+        if (y == VA_END)
+            y.din := V_STA
+        else
+            y.din := y + 1 // last line on screen?
+    else x.din := x + 1
 
     // delay screen position to match sync and control signals
-    process(clk_pix.rising) {
-        sx :== x
-        sy :== y
-        if (rst_pix)
-            sx :== H_STA
-            sy :== V_STA
-    }
+    sx := x.reg(1, initValue = H_STA)
+    sy := y.reg(1, initValue = V_STA)

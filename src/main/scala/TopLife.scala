@@ -23,6 +23,14 @@ class TopLife(
     val clk_pix_locked = Bit <> VAR
     val rst_pix        = Bit <> VAR
 
+    val sys = new RTDomain(sysCfg):
+        val clk = Bit <> WIRE
+        val rst = Bit <> WIRE
+
+    val pix = new RTDomain(pixCfg):
+        val clk = Bit <> WIRE
+        val rst = Bit <> WIRE
+
     if (isSDL) then
         process(all) {
             clk_pix_locked := 1
@@ -31,6 +39,13 @@ class TopLife(
         }
     else
         val clock_inst = new pll
+
+        sys.clk <> clock_inst.c1
+        sys.rst <> !btn_rst_n
+
+        pix.clk <> clock_inst.c0
+        pix.rst <> rst_pix
+
         clock_inst.areset <> !btn_rst_n
         clock_inst.inclk0 <> clk_50m
         clock_inst.c0     <> clk_pix
@@ -51,26 +66,23 @@ class TopLife(
     }
 
     val display_inst = new Display480p(
+      cfg   = pixCfg,
       CORDW = CORDW
     )
     process(all) {
         sdl_pixel.x := display_inst.sx
         sdl_pixel.y := display_inst.sy
     }
-    display_inst.clk_pix <> clk_pix
-    display_inst.rst_pix <> rst_pix
-    display_inst.de      <> de_local
-    display_inst.hsync   <> hsync
-    display_inst.vsync   <> vsync
-    display_inst.frame   <> frame
-    display_inst.line    <> line
+    display_inst.de    <> de_local
+    display_inst.hsync <> hsync
+    display_inst.vsync <> vsync
+    display_inst.frame <> frame
+    display_inst.line  <> line
 
     val frame_sys = Bit <> VAR // start of new frame in system clock domain
-    val xd_frame  = new XD
-    xd_frame.clk_src  <> clk_pix
-    xd_frame.clk_dst  <> clk_100m
-    xd_frame.flag_src <> frame
-    xd_frame.flag_dst <> frame_sys
+    val xd_frame = new XD(srcCfg = pixCfg, dstCfg = sysCfg)
+    xd_frame.src.flag <> frame
+    xd_frame.dst.flag <> frame_sys
 
     // life signals
     /* verilator lint_off UNUSED */
@@ -122,9 +134,7 @@ class TopLife(
         // fb_cidx(1) :== 0
     }
 
-    val life_inst = new Life()
-    life_inst.clk   <> clk_100m // clock
-    life_inst.rst   <> false // reset
+    val life_inst = new Life(cfg = sysCfg)
     life_inst.start <> life_start // start generation
     fb_we           <> life_inst.ready // cell state ready to be read
     life_inst.alive <> life_alive // is the cell alive? (when ready)

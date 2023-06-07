@@ -1,6 +1,21 @@
 import dfhdl.*
 
 object GameDefs:
+
+    val pix_clkCfg = ClkCfg(ClkCfg.Edge.Rising)
+    val sys_clkCfg = ClkCfg(ClkCfg.Edge.Rising)
+    val sys_rstCfg = RstCfg(
+      RstCfg.Mode.Async,
+      RstCfg.Active.Low
+    )
+    val pix_rstCfg = RstCfg(
+      RstCfg.Mode.Async,
+      RstCfg.Active.Low
+    )
+
+    val sysCfg = RTDomainCfg(sys_clkCfg, sys_rstCfg)
+    val pixCfg = RTDomainCfg(pix_clkCfg, pix_rstCfg)
+
     val CORDW      = 16
     val GEN_FRAMES = 5 // each generation lasts this many frames
     val SEED_FILE  = "gosper_gun_64x48.mem" // world seed

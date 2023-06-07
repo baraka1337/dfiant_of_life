@@ -13,7 +13,7 @@ class ID extends EDDesign:
     val top = new top_life_de10
     import compiler.stages.StageRunner
     StageRunner.logDebug()
-    top.compile
-        .toFolder("sandbox")
-        // .printGenFiles
-        .lint
+    top.printCodeString
+    // .toFolder("sandbox")
+    // // .printGenFiles
+    // .lint

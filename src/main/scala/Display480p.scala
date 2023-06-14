@@ -39,16 +39,21 @@ class Display480p(
 
     val x = SInt(CORDW) <> REG init H_STA
     val y = SInt(CORDW) <> REG init V_STA
+
+    val hsync_wire = Bit <> WIRE
+    val vsync_wire = Bit <> WIRE
     // generate horizontal and vertical sync with correct polarity
     if (H_POL)
-        hsync := (x > HS_STA && x <= HS_END).reg(1, initValue = !H_POL)
+        hsync_wire := (x > HS_STA && x <= HS_END)
     else
-        hsync := !(x > HS_STA && x <= HS_END).reg(1, initValue = !H_POL)
+        hsync_wire := !(x > HS_STA && x <= HS_END)
+    hsync          := hsync_wire.reg(1, initValue = !H_POL)
 
     if (V_POL)
-        vsync := (y > VS_STA && y <= VS_END).reg(1, initValue = !V_POL)
+        vsync_wire := (y > VS_STA && y <= VS_END)
     else
-        vsync := !(y > VS_STA && y <= VS_END).reg(1, initValue = !V_POL)
+        vsync_wire := !(y > VS_STA && y <= VS_END)
+    vsync          := vsync_wire.reg(1, initValue = !V_POL)
 
     // control signals
     de    := (y >= VA_STA && x >= HA_STA).reg(1, initValue = 0)
@@ -65,5 +70,5 @@ class Display480p(
     else x.din := x + 1
 
     // delay screen position to match sync and control signals
-    sx := x.reg(1, initValue = H_STA)
-    sy := y.reg(1, initValue = V_STA)
+    sx := x.reg
+    sy := y.reg

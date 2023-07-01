@@ -36,11 +36,9 @@ class FramebufferBram extends EDDesign:
     val x_add = SInt(CORDW) <> VAR
 
     process(clk_sys.rising) {
-        fb_addr_line :== (pixel.y.bits * WIDTH).resize(fb_addr_line.width)
-        x_add        :== pixel.x
-        fb_addr_write :== (x_add + fb_addr_line.signed).bits
-            .resize(fb_addr_write.width)
-            .uint
+        fb_addr_line  :== (pixel.y.bits * WIDTH).resize(fb_addr_line.width)
+        x_add         :== pixel.x
+        fb_addr_write :== (x_add + fb_addr_line.signed).bits.truncate
     }
 
     val we_in_p1 = Boolean <> VAR

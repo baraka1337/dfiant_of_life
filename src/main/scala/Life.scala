@@ -113,7 +113,7 @@ class Life extends EDDesign:
                 cell_id :== WORLD_WIDTH + 1
 
             case READ =>
-                addr_read :== (cell_id.signed + read_addresses(read_step)).bits.resize(addr_read.width).uint
+                addr_read :== (cell_id.signed + read_addresses(read_step)).bits.truncate
                 if (read_step >= 2 && (!inc_read || read_step >= 8))
                     grid_sr(grid_index) :== (grid_sr(grid_index)(1, 0), data_out)
 
